@@ -104,8 +104,8 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
 
             JSONParser parser = new JSONParser();
             Object obj = parser.parse(inLine);
-            JSONArray jArray = (JSONArray) obj;
-            return jArray;
+
+            return (JSONArray) obj;
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -129,6 +129,7 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
         jsonArray = getJSONArray(-1);
         int i = 0;
         marcas.removeAllItems();
+        marcas.removeActionListener(this);
         while(i < jsonArray.size()){
             JSONObject jObjAux = (JSONObject) jsonArray.get(i);
             String nomeMarca = (String) jObjAux.get("fipe_name");
@@ -136,6 +137,7 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
             marcas.addItem(new JComboItem(nomeMarca, idMarca));
             ++i;
         }
+        marcas.addActionListener(this);
     }
 }
 

@@ -62,6 +62,7 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
         panel.add(new JLabel("Ano", SwingConstants.CENTER));
         panel.add(new JLabel("Preço", SwingConstants.CENTER));
         panel.add(new JLabel("", SwingConstants.CENTER));
+        panel.add(pesquisar);
         for (JComboBox e : boxes) {
             panel.add(e);
         }

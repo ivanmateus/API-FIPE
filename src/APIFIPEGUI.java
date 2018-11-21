@@ -24,6 +24,8 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
     private JPanel panel;
     private JSONArray jsonArray;
     private String qualVeic;
+    private String qualMarca;
+    private String qualModelo;
 
     public APIFIPEGUI(){
         super("API FIPE");
@@ -34,6 +36,7 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
         marcas = new JComboBox<JComboItem>();
         marcas.addActionListener(this);
         modelos = new JComboBox<JComboItem>();
+        modelos.addActionListener(this);
         ano = new JComboBox<String>();
         preco = new JComboBox<String>();
         pesquisar = new JButton("Pesquisar");
@@ -68,21 +71,28 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
             }else if(veic.equals("Caminhões")){
                 qualVeic = new String("caminhoes");
             }
-            getJSONMarca();
+            getJSONMarca("marcas");
         }else if(e.getSource() == marcas){
             JComboItem marc = (JComboItem) marcas.getSelectedItem();
             long value = marc.getValue();
-            getJSONModelo(value);
+            qualMarca = String.valueOf(value);
+            getJSONModelo("modelos");
+        }else if(e.getSource() == modelos){
+            JComboItem marc = (JComboItem) modelos.getSelectedItem();
+            long value = marc.getValue();
+            qualModelo = String.valueOf(value);
+            getJSONVeiculo("veiculo");
         }
     }
 
-    public JSONArray getJSONArray(long id){
+    public JSONArray getJSONArray(String qualUrl){
         String urlString = "";
-        if(id == -1) {
+        if(qualUrl.equals("marcas")) {
             urlString = "https://fipeapi.appspot.com/api/1/" + qualVeic + "/marcas.json";
-        }else{
-            String strId = String.valueOf(id);
-            urlString = "https://fipeapi.appspot.com/api/1/" + qualVeic + "/veiculos/" + strId + ".json";
+        }else if(qualUrl.equals("modelos")){
+            urlString = "https://fipeapi.appspot.com/api/1/" + qualVeic + "/veiculos/" + qualMarca + ".json";
+        }else if(qualUrl.equals("veiculo")){
+            urlString = "https://fipeapi.appspot.com/api/1/" + qualVeic + "/veiculo/" + qualMarca + "/" + qualModelo +  ".json";
         }
         String inLine = "";
         try {
@@ -112,9 +122,22 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
         return null;
     }
 
-    public void getJSONModelo(long id){
-        jsonArray = getJSONArray(id);
+    public void getJSONVeiculo(String qualUrl){
+        jsonArray = getJSONArray(qualUrl);
         int i = 0;
+        while(i < jsonArray.size()) {
+            JSONObject jObjAux = (JSONObject) jsonArray.get(i);
+            String nomeModelo = (String) jObjAux.get("name");
+            String idModelo = (String) jObjAux.get("id");
+            System.out.println(nomeModelo + " " + idModelo);
+            ++i;
+        }
+    }
+
+    public void getJSONModelo(String qualUrl){
+        jsonArray = getJSONArray(qualUrl);
+        int i = 0;
+        modelos.removeActionListener(this);
         modelos.removeAllItems();
         while(i < jsonArray.size()) {
             JSONObject jObjAux = (JSONObject) jsonArray.get(i);
@@ -123,13 +146,16 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
             modelos.addItem(new JComboItem(nomeModelo, idModelo));
             ++i;
         }
+        modelos.addActionListener(this);
     }
 
-    public void getJSONMarca(){
-        jsonArray = getJSONArray(-1);
+    public void getJSONMarca(String qualUrl){
+        jsonArray = getJSONArray(qualUrl);
         int i = 0;
-        marcas.removeAllItems();
         marcas.removeActionListener(this);
+        modelos.removeActionListener(this);
+        marcas.removeAllItems();
+        modelos.removeAllItems();
         while(i < jsonArray.size()){
             JSONObject jObjAux = (JSONObject) jsonArray.get(i);
             String nomeMarca = (String) jObjAux.get("fipe_name");

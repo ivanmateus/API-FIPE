@@ -1,8 +1,8 @@
 public class JComboItem {
     private String key;
-    private long value;
+    private String value;
 
-    public JComboItem(String key, long value){
+    public JComboItem(String key, String value){
         this.key = key;
         this.value = value;
     }
@@ -16,7 +16,7 @@ public class JComboItem {
         return key;
     }
 
-    public long getValue() {
+    public String getValue() {
         return value;
     }
 }

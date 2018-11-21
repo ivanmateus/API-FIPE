@@ -13,6 +13,7 @@ import javax.swing.border.*;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.net.*;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -34,7 +35,7 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
     private JComboItem emptyItem;
     private ArrayList<JComboBox> boxes;
 
-    public APIFIPEGUI(){
+    public APIFIPEGUI() {
         super("API FIPE");
         setLayout(new BorderLayout());
         String[] quaisVeic = new String[]{"", "Carros", "Motos", "Caminhões"};
@@ -48,7 +49,7 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
         ano = new JComboBox<JComboItem>();
         preco = new JComboBox<String>();
         pesquisar = new JButton("Pesquisar");
-        emptyItem = new JComboItem(" ", 000);
+        emptyItem = new JComboItem(" ", "empty");
 
         boxes.add(veiculos);
         boxes.add(marcas);
@@ -58,49 +59,49 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
 
         veicPanel = new JPanel();
         panel = new JPanel(new GridLayout(2, 6, 10, 10));
-        panel.setBorder(new EmptyBorder(20,20,20,20));
+        panel.setBorder(new EmptyBorder(20, 20, 20, 20));
         panel.add(new JLabel("Veículos", SwingConstants.CENTER));
         panel.add(new JLabel("Marcas", SwingConstants.CENTER));
         panel.add(new JLabel("Modelos", SwingConstants.CENTER));
         panel.add(new JLabel("Ano", SwingConstants.CENTER));
         panel.add(new JLabel("Preço", SwingConstants.CENTER));
         panel.add(new JLabel("", SwingConstants.CENTER));
-        panel.add(pesquisar);
         for (JComboBox e : boxes) {
             panel.add(e);
         }
+        panel.add(pesquisar);
         add(panel, BorderLayout.NORTH);
         add(veicPanel, BorderLayout.CENTER);
 
-        setPreferredSize(new Dimension(1000,400));
+        setPreferredSize(new Dimension(1000, 400));
         pack();
         setVisible(true);
     }
 
-    public void actionPerformed(ActionEvent e){
-        if(e.getSource() == veiculos){
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == veiculos) {
             String veic = (String) veiculos.getSelectedItem();
-            if(veic.equals("Carros")){
+            if (veic.equals("Carros")) {
                 qualVeic = new String("carros");
-            }else if(veic.equals("Motos")){
+            } else if (veic.equals("Motos")) {
                 qualVeic = new String("motos");
-            }else if(veic.equals("Caminhões")){
+            } else if (veic.equals("Caminhões")) {
                 qualVeic = new String("caminhoes");
             } else {
                 clearSelection(veiculos);
             }
             getJSONMarca("marcas");
-        }else if(e.getSource() == marcas){
+        } else if (e.getSource() == marcas) {
             if (marcas.getSelectedItem() == emptyItem) clearSelection(marcas);
             JComboItem marc = (JComboItem) marcas.getSelectedItem();
             qualMarca = marc.getValue();
             getJSONModelo("modelos");
-        }else if(e.getSource() == modelos){
+        } else if (e.getSource() == modelos) {
             if (modelos.getSelectedItem() == emptyItem) clearSelection(modelos);
             JComboItem marc = (JComboItem) modelos.getSelectedItem();
             qualModelo = marc.getValue();
             getJSONVeiculo("veiculo");
-        }else if(e.getSource() == ano){
+        } else if (e.getSource() == ano) {
             JComboItem marc = (JComboItem) ano.getSelectedItem();
             qualAno = marc.getValue();
             getJSONAno("ano");
@@ -109,22 +110,26 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
 
     // Limpa as seleções a partir da dada como argumento
     public void clearSelection(JComboBox item) {
-        for (int i = boxes.indexOf(item)+1; i < boxes.size(); i++) {
+        for (int i = boxes.indexOf(item) + 1; i < boxes.size(); i++) {
             boxes.get(i).removeActionListener(this);
             boxes.get(i).removeAllItems();
         }
+
+        veicPanel.removeAll();
+        veicPanel.add(new JLabel(""));
+        veicPanel.repaint();
     }
 
-    public Object getJSONArray(String qualUrl){
+    public Object getJSONArray(String qualUrl) {
         String urlString = "";
-        if(qualUrl.equals("marcas")) {
+        if (qualUrl.equals("marcas")) {
             urlString = "https://fipeapi.appspot.com/api/1/" + qualVeic + "/marcas.json";
-        }else if(qualUrl.equals("modelos")){
+        } else if (qualUrl.equals("modelos")) {
             urlString = "https://fipeapi.appspot.com/api/1/" + qualVeic + "/veiculos/" + qualMarca + ".json";
-        }else if(qualUrl.equals("veiculo")){
-            urlString = "https://fipeapi.appspot.com/api/1/" + qualVeic + "/veiculo/" + qualMarca + "/" + qualModelo +  ".json";
-        }else if(qualUrl.equals("ano")){
-            urlString = "https://fipeapi.appspot.com/api/1/" + qualVeic + "/veiculo/" + qualMarca + "/" + qualModelo + "/" + qualAno +  ".json";
+        } else if (qualUrl.equals("veiculo")) {
+            urlString = "https://fipeapi.appspot.com/api/1/" + qualVeic + "/veiculo/" + qualMarca + "/" + qualModelo + ".json";
+        } else if (qualUrl.equals("ano")) {
+            urlString = "https://fipeapi.appspot.com/api/1/" + qualVeic + "/veiculo/" + qualMarca + "/" + qualModelo + "/" + qualAno + ".json";
         }
         String inLine = "";
         try {
@@ -148,15 +153,15 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
             Object obj = parser.parse(inLine);
 
             return obj;
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    public void getJSONAno(String qualUrl){
+    public void getJSONAno(String qualUrl) {
         JSONObject jObjAux = (JSONObject) getJSONArray(qualUrl);
-        veicPanel = new JPanel(new GridLayout(7,1));
+        veicPanel = new JPanel(new GridLayout(7, 1));
         String aux = "Nome: " + jObjAux.get("name");
         JLabel nome = new JLabel(aux, SwingConstants.CENTER);
         aux = "Marca: " + jObjAux.get("marca");
@@ -179,18 +184,18 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
         veicPanel.add(comb);
         veicPanel.add(ref);
         veicPanel.add(codFipe);
-        veicPanel.setBorder(new EmptyBorder(0,20,20,20));
+        veicPanel.setBorder(new EmptyBorder(0, 20, 20, 20));
 
         add(veicPanel, SwingConstants.CENTER);
         pack();
     }
 
-    public void getJSONVeiculo(String qualUrl){
+    public void getJSONVeiculo(String qualUrl) {
         jsonArray = (JSONArray) getJSONArray(qualUrl);
         int i = 0;
         ano.removeActionListener(this);
         ano.removeAllItems();
-        while(i < jsonArray.size()) {
+        while (i < jsonArray.size()) {
             JSONObject jObjAux = (JSONObject) jsonArray.get(i);
             String nomeAno = (String) jObjAux.get("name");
             String idAno = (String) jObjAux.get("id");
@@ -201,12 +206,12 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
         pack();
     }
 
-    public void getJSONModelo(String qualUrl){
+    public void getJSONModelo(String qualUrl) {
         jsonArray = (JSONArray) getJSONArray(qualUrl);
         int i = 0;
         clearSelection(marcas);
         modelos.addItem(emptyItem);
-        while(i < jsonArray.size()) {
+        while (i < jsonArray.size()) {
             JSONObject jObjAux = (JSONObject) jsonArray.get(i);
             String nomeModelo = (String) jObjAux.get("fipe_name");
             String idModelo = (String) jObjAux.get("id");
@@ -218,12 +223,12 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
         pack();
     }
 
-    public void getJSONMarca(String qualUrl){
+    public void getJSONMarca(String qualUrl) {
         jsonArray = (JSONArray) getJSONArray(qualUrl);
         int i = 0;
         clearSelection(veiculos);
         marcas.addItem(emptyItem);
-        while(i < jsonArray.size()){
+        while (i < jsonArray.size()) {
             JSONObject jObjAux = (JSONObject) jsonArray.get(i);
             String nomeMarca = (String) jObjAux.get("fipe_name");
             String idMarca = String.valueOf((long) jObjAux.get("id"));

@@ -23,9 +23,9 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
     private JComboBox<JComboItem> marcas;
     private JComboBox<JComboItem> modelos;
     private JComboBox<JComboItem> ano;
-    private JComboBox<String> preco;
     private JButton pesquisar;
     private JPanel panel;
+    private JPanel boxPanel;
     private JPanel veicPanel;
     private JSONArray jsonArray;
     private String qualVeic;
@@ -47,33 +47,48 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
         modelos = new JComboBox<JComboItem>();
         modelos.addActionListener(this);
         ano = new JComboBox<JComboItem>();
-        preco = new JComboBox<String>();
         pesquisar = new JButton("Pesquisar");
+        pesquisar.addActionListener(this);
         emptyItem = new JComboItem(" ", "empty");
+        boxPanel = new JPanel(new GridBagLayout());
+        veicPanel = new JPanel();
+        panel = new JPanel(new GridLayout(4,2,20,10));
 
         boxes.add(veiculos);
         boxes.add(marcas);
         boxes.add(modelos);
         boxes.add(ano);
-        boxes.add(preco);
 
-        veicPanel = new JPanel();
-        panel = new JPanel(new GridLayout(2, 6, 10, 10));
-        panel.setBorder(new EmptyBorder(20, 20, 20, 20));
         panel.add(new JLabel("Veículos", SwingConstants.CENTER));
         panel.add(new JLabel("Marcas", SwingConstants.CENTER));
+        panel.add(boxes.get(0));
+        panel.add(boxes.get(1));
         panel.add(new JLabel("Modelos", SwingConstants.CENTER));
         panel.add(new JLabel("Ano", SwingConstants.CENTER));
-        panel.add(new JLabel("Preço", SwingConstants.CENTER));
-        panel.add(new JLabel("", SwingConstants.CENTER));
-        for (JComboBox e : boxes) {
-            panel.add(e);
-        }
-        panel.add(pesquisar);
-        add(panel, BorderLayout.NORTH);
-        add(veicPanel, BorderLayout.CENTER);
+        panel.add(boxes.get(2));
+        panel.add(boxes.get(3));
+        panel.setBorder(new EmptyBorder(20, 20, 30, 20));
 
-        setPreferredSize(new Dimension(1000, 400));
+        GridBagConstraints bagConst = new GridBagConstraints();
+        bagConst.weightx = 1.0;
+        bagConst.fill = GridBagConstraints.CENTER;
+
+        bagConst.ipadx = 600;
+        bagConst.gridx = 0;
+        bagConst.gridy = 0;
+        boxPanel.add(panel, bagConst);
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(pesquisar);
+
+        bagConst.ipadx = 30;
+        bagConst.gridx = 0;
+        bagConst.gridy = 1;
+        boxPanel.add(buttonPanel, bagConst);
+
+        add(boxPanel, BorderLayout.NORTH);
+        add(veicPanel, BorderLayout.CENTER);
+        setPreferredSize(new Dimension(800, 600));
         pack();
         setVisible(true);
     }
@@ -101,7 +116,7 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
             JComboItem marc = (JComboItem) modelos.getSelectedItem();
             qualModelo = marc.getValue();
             getJSONVeiculo("veiculo");
-        } else if (e.getSource() == ano) {
+        } else if (e.getSource() == pesquisar) {
             JComboItem marc = (JComboItem) ano.getSelectedItem();
             qualAno = marc.getValue();
             getJSONAno("ano");

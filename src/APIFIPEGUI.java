@@ -132,7 +132,9 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
 
         veicPanel.removeAll();
         veicPanel.add(new JLabel(""));
+        veicPanel.revalidate();
         veicPanel.repaint();
+        pack();
     }
 
     public Object getJSONArray(String qualUrl) {
@@ -208,8 +210,10 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
     public void getJSONVeiculo(String qualUrl) {
         jsonArray = (JSONArray) getJSONArray(qualUrl);
         int i = 0;
+        clearSelection(ano);
         ano.removeActionListener(this);
         ano.removeAllItems();
+        ano.addItem(emptyItem);
         while (i < jsonArray.size()) {
             JSONObject jObjAux = (JSONObject) jsonArray.get(i);
             String nomeAno = (String) jObjAux.get("name");

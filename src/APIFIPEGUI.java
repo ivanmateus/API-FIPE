@@ -14,6 +14,10 @@ import java.util.ArrayList;
 import java.util.Scanner;
 import java.net.*;
 
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.general.DefaultPieDataset;
+import org.jfree.data.general.PieDataset;
+import org.jfree.ui.RefineryUtilities;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -34,9 +38,30 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
     private String qualAno;
     private JComboItem emptyItem;
     private ArrayList<JComboBox> boxes;
+    private JMenuItem marcasPorVeic;
+    private JMenuItem caminPorMarca;
+    private PieChart graficoPizza;
+    private BarChart graficoBarra;
+    
+    /*private JMenuItem carro;
+    private JMenuItem caminhao;
+    private JMenuItem moto;
+    */
 
     public APIFIPEGUI() {
         super("API FIPE");
+
+        JMenuBar menuBar = new JMenuBar();
+        setJMenuBar(menuBar);
+        JMenu opcoes = new JMenu("Gráficos...");
+        menuBar.add(opcoes);
+        marcasPorVeic = new JMenuItem("Quantidade de marcas por veículo...");
+        marcasPorVeic.addActionListener(this);
+        opcoes.add(marcasPorVeic);
+        caminPorMarca = new JMenuItem("Quantidade de caminhões por marca...");
+        caminPorMarca.addActionListener(this);
+        opcoes.add(caminPorMarca);
+
         setLayout(new BorderLayout());
         String[] quaisVeic = new String[]{"", "Carros", "Motos", "Caminhões"};
         boxes = new ArrayList<>();
@@ -90,6 +115,7 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
         add(veicPanel, BorderLayout.CENTER);
         setPreferredSize(new Dimension(800, 600));
         pack();
+        RefineryUtilities.centerFrameOnScreen(this);
         setVisible(true);
     }
 
@@ -120,6 +146,52 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
             JComboItem marc = (JComboItem) ano.getSelectedItem();
             qualAno = marc.getValue();
             getJSONAno("ano");
+        } else if (e.getSource() == marcasPorVeic) {
+            qualVeic = new String("carros");
+            int sizeCarros = ((JSONArray) getJSONArray("marcas")).size();
+            
+            qualVeic = new String("motos");
+            int sizeMotos = ((JSONArray) getJSONArray("marcas")).size();
+            
+            qualVeic = new String("caminhoes");
+            int sizeCaminhoes = ((JSONArray) getJSONArray("marcas")).size();
+
+            fazGrafico("marcasPorVeic", sizeCarros, sizeMotos, sizeCaminhoes, null);
+        }   else if(e.getSource() == caminPorMarca){
+            qualVeic = new String("caminhoes");
+            JSONArray marcasArray = (JSONArray) getJSONArray("marcas");
+            ArrayList<Integer> quantModelos = new ArrayList<Integer>();
+            for(int i = 0; i < marcasArray.size(); ++i){
+                JSONObject aux = (JSONObject) marcasArray.get(i);
+                qualMarca = String.valueOf(aux.get("id"));
+                JSONArray modelosArray = (JSONArray) getJSONArray("modelos");
+                quantModelos.add(modelosArray.size());
+            }
+            jsonArray = marcasArray;
+            fazGrafico("", 0, 0, 0, quantModelos);
+        }
+    }
+
+    public void fazGrafico(String qualGraf, int sizeCar, int sizeMot, int sizeCami, ArrayList<Integer> quantMod){
+        if(qualGraf.equals("marcasPorVeic")) {
+            DefaultPieDataset result = new DefaultPieDataset();
+            result.setValue("Carros", sizeCar);
+            result.setValue("Caminhões", sizeCami);
+            result.setValue("Motos", sizeMot);
+            graficoPizza = new PieChart("Gráfico", "Quantidade de marcas por veículo", result);
+            graficoPizza.pack();
+            RefineryUtilities.centerFrameOnScreen(graficoPizza);
+            graficoPizza.setVisible(true);
+        } else{
+            DefaultCategoryDataset dataSet = new DefaultCategoryDataset();
+            for(int i = 0; i < quantMod.size(); ++i){
+                JSONObject auxJSON = (JSONObject) jsonArray.get(i);
+                dataSet.addValue((double) quantMod.get(i), "Marcas", (String) auxJSON.get("fipe_name"));
+            }
+            graficoBarra = new BarChart("Gráfico", "Quantidade de caminhões por marca", dataSet);
+            graficoBarra.pack();
+            RefineryUtilities.centerFrameOnScreen(graficoBarra);
+            graficoBarra.setVisible(true);
         }
     }
 
@@ -168,6 +240,7 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
 
             JSONParser parser = new JSONParser();
             Object obj = parser.parse(inLine);
+            conn.disconnect();
 
             return obj;
         } catch (Exception e) {

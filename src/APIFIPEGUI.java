@@ -48,9 +48,9 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
     private JMenuItem moto;
     */
 
+
     public APIFIPEGUI() {
         super("API FIPE");
-
         JMenuBar menuBar = new JMenuBar();
         setJMenuBar(menuBar);
         JMenu opcoes = new JMenu("Gráficos...");
@@ -77,7 +77,7 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
         emptyItem = new JComboItem(" ", "empty");
         boxPanel = new JPanel(new GridBagLayout());
         veicPanel = new JPanel();
-        panel = new JPanel(new GridLayout(4,2,20,10));
+        panel = new JPanel(new GridLayout(4, 2, 20, 10));
 
         boxes.add(veiculos);
         boxes.add(marcas);
@@ -119,8 +119,26 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
         setVisible(true);
     }
 
+    /**
+     * Method to toggle the cursor between a loading and a default one
+     * @param inProgress
+     */
+    public void loading(boolean inProgress) {
+        if (inProgress) {
+            this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        } else {
+            this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        }
+    }
+
+    /**
+     * Checks what selection was chosen and acts accordingly
+     * @param e
+     */
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == veiculos) {
+        Object source = e.getSource();
+        loading(true);
+        if (source == veiculos) {
             String veic = (String) veiculos.getSelectedItem();
             if (veic.equals("Carros")) {
                 qualVeic = new String("carros");
@@ -132,36 +150,46 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
                 clearSelection(veiculos);
             }
             getJSONMarca("marcas");
-        } else if (e.getSource() == marcas) {
-            if (marcas.getSelectedItem() == emptyItem) clearSelection(marcas);
-            JComboItem marc = (JComboItem) marcas.getSelectedItem();
-            qualMarca = marc.getValue();
-            getJSONModelo("modelos");
-        } else if (e.getSource() == modelos) {
-            if (modelos.getSelectedItem() == emptyItem) clearSelection(modelos);
-            JComboItem marc = (JComboItem) modelos.getSelectedItem();
-            qualModelo = marc.getValue();
-            getJSONVeiculo("veiculo");
-        } else if (e.getSource() == pesquisar) {
-            JComboItem marc = (JComboItem) ano.getSelectedItem();
-            qualAno = marc.getValue();
-            getJSONAno("ano");
-        } else if (e.getSource() == marcasPorVeic) {
+        } else if (source == marcas) {
+            if (marcas.getSelectedItem() == emptyItem) {
+                clearSelection(marcas);
+            } else {
+                JComboItem marc = (JComboItem) marcas.getSelectedItem();
+                qualMarca = marc.getValue();
+                getJSONModelo("modelos");
+            }
+        } else if (source == modelos) {
+            if (modelos.getSelectedItem() == emptyItem) {
+                clearSelection(modelos);
+            } else {
+                JComboItem marc = (JComboItem) modelos.getSelectedItem();
+                qualModelo = marc.getValue();
+                getJSONVeiculo("veiculo");
+            }
+        } else if (source == pesquisar) {
+            try {
+                JComboItem marc = (JComboItem) ano.getSelectedItem();
+                qualAno = marc.getValue();
+                getJSONAno("ano");
+            } catch (Exception searchException) {
+                JOptionPane.showMessageDialog(this, "Preencha todos os valores antes de pesquisar", "Pesquisa Inválida", JOptionPane.WARNING_MESSAGE);
+            }
+        } else if (source == marcasPorVeic) {
             qualVeic = new String("carros");
             int sizeCarros = ((JSONArray) getJSONArray("marcas")).size();
-            
+
             qualVeic = new String("motos");
             int sizeMotos = ((JSONArray) getJSONArray("marcas")).size();
-            
+
             qualVeic = new String("caminhoes");
             int sizeCaminhoes = ((JSONArray) getJSONArray("marcas")).size();
 
             fazGrafico("marcasPorVeic", sizeCarros, sizeMotos, sizeCaminhoes, null);
-        }   else if(e.getSource() == caminPorMarca){
+        } else if (source == caminPorMarca) {
             qualVeic = new String("caminhoes");
             JSONArray marcasArray = (JSONArray) getJSONArray("marcas");
             ArrayList<Integer> quantModelos = new ArrayList<Integer>();
-            for(int i = 0; i < marcasArray.size(); ++i){
+            for (int i = 0; i < marcasArray.size(); ++i) {
                 JSONObject aux = (JSONObject) marcasArray.get(i);
                 qualMarca = String.valueOf(aux.get("id"));
                 JSONArray modelosArray = (JSONArray) getJSONArray("modelos");
@@ -170,10 +198,24 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
             jsonArray = marcasArray;
             fazGrafico("", 0, 0, 0, quantModelos);
         }
+        loading(false);
     }
 
-    public void fazGrafico(String qualGraf, int sizeCar, int sizeMot, int sizeCami, ArrayList<Integer> quantMod){
-        if(qualGraf.equals("marcasPorVeic")) {
+    /**
+     * Method to create the charts on the program
+     * @param qualGraf
+     * What type of graph it is
+     * @param sizeCar
+     * The size of the Cars Array
+     * @param sizeMot
+     * The size of the Motorcycles Array
+     * @param sizeCami
+     * The size of the Trucks Array
+     * @param quantMod
+     * An array with the number of models per manufacturer
+     */
+    public void fazGrafico(String qualGraf, int sizeCar, int sizeMot, int sizeCami, ArrayList<Integer> quantMod) {
+        if (qualGraf.equals("marcasPorVeic")) {
             DefaultPieDataset result = new DefaultPieDataset();
             result.setValue("Carros", sizeCar);
             result.setValue("Caminhões", sizeCami);
@@ -182,9 +224,9 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
             graficoPizza.pack();
             RefineryUtilities.centerFrameOnScreen(graficoPizza);
             graficoPizza.setVisible(true);
-        } else{
+        } else {
             DefaultCategoryDataset dataSet = new DefaultCategoryDataset();
-            for(int i = 0; i < quantMod.size(); ++i){
+            for (int i = 0; i < quantMod.size(); ++i) {
                 JSONObject auxJSON = (JSONObject) jsonArray.get(i);
                 dataSet.addValue((double) quantMod.get(i), "Marcas", (String) auxJSON.get("fipe_name"));
             }
@@ -195,7 +237,12 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
         }
     }
 
-    // Limpa as seleções a partir da dada como argumento
+    /**
+     * Clears the inputs after the one that was chosen if the user has clicked on an empty item
+     * on the chosen input
+     * @param item
+     * The item that was selected
+     */
     public void clearSelection(JComboBox item) {
         for (int i = boxes.indexOf(item) + 1; i < boxes.size(); i++) {
             boxes.get(i).removeActionListener(this);
@@ -209,6 +256,12 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
         pack();
     }
 
+    /**
+     * Gets a URL to make an API call and returns a object from this call
+     * @param qualUrl
+     * The URL to make the API call
+     * @return A JSON parsed into a Java Object
+     */
     public Object getJSONArray(String qualUrl) {
         String urlString = "";
         if (qualUrl.equals("marcas")) {
@@ -241,14 +294,21 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
             JSONParser parser = new JSONParser();
             Object obj = parser.parse(inLine);
             conn.disconnect();
-
             return obj;
         } catch (Exception e) {
             e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Um erro inesperado ocorreu", "Erro", JOptionPane.ERROR_MESSAGE);
+            loading(false);
         }
         return null;
     }
 
+    /**
+     * When the final input was filled and the user has clicked on the search
+     * button, this method shows the vehicle info
+     * @param qualUrl
+     * URL to make the API Call
+     */
     public void getJSONAno(String qualUrl) {
         JSONObject jObjAux = (JSONObject) getJSONArray(qualUrl);
         veicPanel = new JPanel(new GridLayout(7, 1));
@@ -280,6 +340,11 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
         pack();
     }
 
+    /**
+     * Populates the "year" input with all the manufacturing years of the chosen model
+     * @param qualUrl
+     * URL to make the API Call
+     */
     public void getJSONVeiculo(String qualUrl) {
         jsonArray = (JSONArray) getJSONArray(qualUrl);
         int i = 0;
@@ -298,6 +363,11 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
         pack();
     }
 
+    /**
+     * Populates the "models" input with all the models from the chosen manufacturer
+     * @param qualUrl
+     * URL to make the API Call
+     */
     public void getJSONModelo(String qualUrl) {
         jsonArray = (JSONArray) getJSONArray(qualUrl);
         int i = 0;
@@ -315,6 +385,11 @@ public class APIFIPEGUI extends JFrame implements ActionListener {
         pack();
     }
 
+    /**
+     * Populates the "manufacturers" input with all the manufacturers of the chosen vehicle
+     * @param qualUrl
+     * URL to make the API Call
+     */
     public void getJSONMarca(String qualUrl) {
         jsonArray = (JSONArray) getJSONArray(qualUrl);
         int i = 0;
